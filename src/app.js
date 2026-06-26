@@ -1,11 +1,14 @@
 import express from "express";
-import dotenv from "dotenv";
+
 import productsRoutes from "./routes/productRoutes.js";
 
 const app = express();
-
 app.use(express.json());
 
-app.use('/products', productsRoutes);
+app.get("/", (req, res) => {
+    res.send("Backend is running. Use /products to access the API.");
+});
 
-export default app; 
+app.use("/products", productsRoutes);
+
+export default app;
