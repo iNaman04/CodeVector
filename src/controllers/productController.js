@@ -3,7 +3,7 @@ import { getAllProducts } from "../services/productService.js";
 export const getProducts = async (req, res) => {
     try {
 
-        // Limit
+     
         let limit = parseInt(req.query.limit);
 
         if (isNaN(limit) || limit <= 0) {
@@ -14,17 +14,16 @@ export const getProducts = async (req, res) => {
             limit = 100;
         }
 
-        // Optional category filter
         const category = req.query.category || null;
 
-        // Cursor
+
         const cursorTime = req.query.cursorTime || null;
 
         const cursorId = req.query.cursorId
             ? Number(req.query.cursorId)
             : null;
 
-        // Snapshot time
+    
         const anchorTime =
             req.query.anchorTime || new Date().toISOString();
 

@@ -22,17 +22,16 @@ export const getAllProducts = async ({
     const conditions = [];
     const values = [];
 
-    // Freeze the dataset at the first request
+    
     values.push(anchorTime);
     conditions.push(`updated_at <= $${values.length}`);
 
-    // Category filter
     if (category) {
         values.push(category);
         conditions.push(`category = $${values.length}`);
     }
 
-    // Cursor pagination
+   
     if (cursorTime && cursorId) {
 
         values.push(cursorTime);
@@ -79,4 +78,4 @@ export const getAllProducts = async ({
 };
 
 
-export default getAllProducts;
+export default getAllProducts;  
