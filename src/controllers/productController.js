@@ -1,8 +1,9 @@
-import  {getAllProducts}  from "../services/productService.js";
+import { getAllProducts } from "../services/productService.js";
 
 export const getProducts = async (req, res) => {
     try {
 
+        // Limit
         let limit = parseInt(req.query.limit);
 
         if (isNaN(limit) || limit <= 0) {
@@ -13,36 +14,43 @@ export const getProducts = async (req, res) => {
             limit = 100;
         }
 
-        const category = req.query.category;
+        // Optional category filter
+        const category = req.query.category || null;
 
+        // Cursor
         const cursorTime = req.query.cursorTime || null;
+
         const cursorId = req.query.cursorId
             ? Number(req.query.cursorId)
             : null;
+
+        // Snapshot time
+        const anchorTime =
+            req.query.anchorTime || new Date().toISOString();
 
         const products = await getAllProducts({
             limit,
             category,
             cursorTime,
-            cursorId
+            cursorId,
+            anchorTime
         });
 
         let nextCursor = null;
 
         if (products.length > 0) {
-
-            const last = products[products.length - 1];
+            const lastProduct = products[products.length - 1];
 
             nextCursor = {
-                cursorTime: last.updated_at,
-                cursorId: last.id
+                cursorTime: lastProduct.updated_at,
+                cursorId: lastProduct.id
             };
-
         }
 
         res.status(200).json({
             success: true,
             count: products.length,
+            anchorTime,
             nextCursor,
             data: products
         });

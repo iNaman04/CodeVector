@@ -4,7 +4,8 @@ export const getAllProducts = async ({
     limit,
     category,
     cursorTime,
-    cursorId
+    cursorId,
+    anchorTime
 }) => {
 
     let query = `
@@ -21,16 +22,17 @@ export const getAllProducts = async ({
     const conditions = [];
     const values = [];
 
+    // Freeze the dataset at the first request
+    values.push(anchorTime);
+    conditions.push(`updated_at <= $${values.length}`);
+
+    // Category filter
     if (category) {
-
         values.push(category);
-
-        conditions.push(
-            `category = $${values.length}`
-        );
-
+        conditions.push(`category = $${values.length}`);
     }
 
+    // Cursor pagination
     if (cursorTime && cursorId) {
 
         values.push(cursorTime);
@@ -49,17 +51,12 @@ export const getAllProducts = async ({
                 )
             )
         `);
-
     }
 
-    if (conditions.length > 0) {
-
-        query += `
-            WHERE
-            ${conditions.join(" AND ")}
-        `;
-
-    }
+    query += `
+        WHERE
+        ${conditions.join(" AND ")}
+    `;
 
     values.push(limit);
 
@@ -70,10 +67,16 @@ export const getAllProducts = async ({
         LIMIT $${values.length}
     `;
 
+    console.log("\nQUERY:");
+    console.log(query);
+
+    console.log("\nVALUES:");
+    console.log(values);
+
     const result = await pool.query(query, values);
 
     return result.rows;
-
 };
+
 
 export default getAllProducts;
