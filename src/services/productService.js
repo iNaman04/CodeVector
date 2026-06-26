@@ -1,8 +1,13 @@
 import pool from "../db/db.js";
 
-export const getAllProducts = async (limit) => {
+export const getAllProducts = async ({
+    limit,
+    category,
+    cursorTime,
+    cursorId
+}) => {
 
-    const query = `
+    let query = `
         SELECT
             id,
             name,
@@ -11,11 +16,61 @@ export const getAllProducts = async (limit) => {
             created_at,
             updated_at
         FROM products
-        ORDER BY updated_at DESC
-        LIMIT $1;
     `;
 
-    const result = await pool.query(query, [limit]);
+    const conditions = [];
+    const values = [];
+
+    if (category) {
+
+        values.push(category);
+
+        conditions.push(
+            `category = $${values.length}`
+        );
+
+    }
+
+    if (cursorTime && cursorId) {
+
+        values.push(cursorTime);
+        const timeIndex = values.length;
+
+        values.push(cursorId);
+        const idIndex = values.length;
+
+        conditions.push(`
+            (
+                updated_at < $${timeIndex}
+                OR
+                (
+                    updated_at = $${timeIndex}
+                    AND id < $${idIndex}
+                )
+            )
+        `);
+
+    }
+
+    if (conditions.length > 0) {
+
+        query += `
+            WHERE
+            ${conditions.join(" AND ")}
+        `;
+
+    }
+
+    values.push(limit);
+
+    query += `
+        ORDER BY
+            updated_at DESC,
+            id DESC
+        LIMIT $${values.length}
+    `;
+
+    const result = await pool.query(query, values);
 
     return result.rows;
 
